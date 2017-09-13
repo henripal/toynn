@@ -24,7 +24,7 @@ def mse(y, target, deriv=False):
     if deriv:
         return (y - target)/len(target)
     return np.mean(np.multiply((y - target), (y-target)))
-
+ 
 """
 NEURAL NETWORK
 """
