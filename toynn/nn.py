@@ -35,7 +35,8 @@ def batch_iter(x, batch_size):
         yield x[start:end, ...]
         start, end = start + batch_size, end + batch_size
 
-def train_test(model, X, Y, train_pct=.8, batch_size=1, learning_rate=1, epochs=10):
+def train_test(model, X, Y, train_pct=.8, batch_size=1, learning_rate=1, epochs=10,
+               rescale_target=False, rescaling_rate = .1):
     n_samples = X.shape[0]
     losses = []
     test_losses = []
@@ -47,8 +48,13 @@ def train_test(model, X, Y, train_pct=.8, batch_size=1, learning_rate=1, epochs=
 
     # add the batch size in this function rather than delegate it to train
     for _ in range(epochs):
+        target = Y_train
+        if rescale_target:
+            yhat = model.predict(X_train)
+            target = Y_train * (1 - rescaling_rate) + yhat.ravel() * rescaling_rate
+            
         for X_tr_b, Y_tr_b in zip(batch_iter(X_train, batch_size),
-                                  batch_iter(Y_train, batch_size)):
+                                  batch_iter(target, batch_size)):
             model.train(X_tr_b, Y_tr_b, learning_rate=learning_rate)
             # train loss:
             yhat_train = model.predict(X_train)
@@ -83,7 +89,7 @@ class NN:
 
         for (i, o) in layers:
             # maybe the init should be parametrized as well
-            self.layers.append(np.random.randn(i, o)*0.02)
+            self.layers.append(np.random.randn(i, o)*1)
             
         self.activation = activation
         self.loss = loss
